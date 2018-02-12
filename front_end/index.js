@@ -45,9 +45,11 @@ function postInit() {
 
 function filesAdded(up, files) {
 	files.forEach(function (file) {
-		document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')<b></b>'
-			+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
-			+ '</div>';
+		getFileMD5(file, function (md5) {
+			document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')(MD5:' + md5 + ')<b></b>'
+				+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
+				+ '</div>';
+		});
 	});
 }
 
@@ -101,4 +103,41 @@ function set_upload_param(up) {
 			}
 		});
 	});
+}
+
+function getFileMD5(file, callback) {
+	let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+		chunkSize = 2097152, // Read in chunks of 2MB
+		chunks = Math.ceil(file.size / chunkSize),
+		currentChunk = 0,
+		spark = new SparkMD5.ArrayBuffer(),
+		fileReader = new FileReader();
+	fileReader.onload = function (e) {
+		console.log('read chunk nr', currentChunk + 1, 'of', chunks);
+		spark.append(e.target.result); // Append array buffer
+		currentChunk++;
+		if (currentChunk < chunks) {
+			loadNext();
+		} else {
+			console.log('finished loading');
+			let md5_value = spark.end();
+			console.info('computed hash string', md5_value); // Compute hash
+			// console.log("base64 raw md5 string", btoa(spark.end(true)))
+			document.getElementById('console').appendChild(document.createTextNode('\n本地计算[' + file.name + ']MD5值为：' + md5_value));
+			if (callback) {
+				callback(btoa(spark.end(true)));
+			}
+		}
+	};
+	fileReader.onerror = function () {
+		console.warn('oops, something went wrong.');
+	};
+
+	function loadNext() {
+		let start = currentChunk * chunkSize,
+			end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+		fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+	}
+
+	loadNext();
 }
