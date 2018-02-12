@@ -30,7 +30,8 @@ let uploader = new plupload.Uploader({
 function beforeUpload(up, file) {
 	let option = up.getOption('multipart_params');
 	option.key = dir + file.name;
-	up.setOption('multipart_params', option);
+	option['Content-MD5'] =
+		up.setOption('multipart_params', option);
 }
 
 function postInit() {
@@ -49,6 +50,9 @@ function filesAdded(up, files) {
 			document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')(MD5:' + md5 + ')<b></b>'
 				+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
 				+ '</div>';
+			let option = up.getOption('multipart_params') || {};
+			option['Content-MD5'] = btoa(hexToBinaryString(md5));
+			up.setOption('multipart_params', option);
 		});
 	});
 }
@@ -105,6 +109,16 @@ function set_upload_param(up) {
 	});
 }
 
+function hexToBinaryString(hex) {
+	let bytes = [];
+
+	for (let x = 0; x < hex.length - 1; x += 2) {
+		bytes.push(parseInt(hex.substr(x, 2), 16));
+	}
+
+	return String.fromCharCode.apply(String, bytes);
+}
+
 function getFileMD5(file, callback) {
 	let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
 		chunkSize = 2097152, // Read in chunks of 2MB
@@ -113,19 +127,17 @@ function getFileMD5(file, callback) {
 		spark = new SparkMD5.ArrayBuffer(),
 		fileReader = new FileReader();
 	fileReader.onload = function (e) {
-		console.log('read chunk nr', currentChunk + 1, 'of', chunks);
 		spark.append(e.target.result); // Append array buffer
 		currentChunk++;
 		if (currentChunk < chunks) {
 			loadNext();
 		} else {
-			console.log('finished loading');
 			let md5_value = spark.end();
-			console.info('computed hash string', md5_value); // Compute hash
-			// console.log("base64 raw md5 string", btoa(spark.end(true)))
-			document.getElementById('console').appendChild(document.createTextNode('\n本地计算[' + file.name + ']MD5值为：' + md5_value));
+			// document.getElementById('console').appendChild(document.createTextNode('\n本地计算[' + file.name + ']MD5值为：' + md5_value));
 			if (callback) {
-				callback(btoa(spark.end(true)));
+				//3749f52bb326ae96782b42dc0a97b4c1
+				//7Iõ+³&®x+BÜ ´Á
+				callback(md5_value);
 			}
 		}
 	};
