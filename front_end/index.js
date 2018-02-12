@@ -30,8 +30,7 @@ let uploader = new plupload.Uploader({
 function beforeUpload(up, file) {
 	let option = up.getOption('multipart_params');
 	option.key = dir + file.name;
-	option['Content-MD5'] =
-		up.setOption('multipart_params', option);
+	up.setOption('multipart_params', option);
 }
 
 function postInit() {
@@ -102,6 +101,7 @@ function set_upload_param(up) {
 		option.success_action_status = '200';
 		option.callback = data.callback;
 		option.signature = data.signature;
+		up.setOption('multipart_params', option);
 		up.setOption({
 			'url': data.host,
 			'multipart_params': option
