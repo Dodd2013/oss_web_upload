@@ -45,7 +45,7 @@ function postInit() {
 
 function filesAdded(up, files) {
 	files.forEach(function (file) {
-		getFileMD5(file, function (md5) {
+		getFileMD5(file.getNative(), function (md5) {
 			document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')(MD5:' + md5 + ')<b></b>'
 				+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
 				+ '</div>';
