@@ -52,6 +52,10 @@ function filesAdded(up, files) {
 			let option = up.getOption('multipart_params') || {};
 			option['Content-MD5'] = btoa(hexToBinaryString(md5));
 			up.setOption('multipart_params', option);
+			if (!file.md5 && file.name.indexOf('.md5') < 0) {
+				up.addFile(new File([md5], file.name + '.md5'));
+				file.md5 = true;
+			}
 		});
 	});
 }
