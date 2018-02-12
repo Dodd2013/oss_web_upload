@@ -96,15 +96,15 @@ function errorHandel(up, err) {
 function set_upload_param(up) {
 	return $.get('/getPolicy').then(function (data) {
 		dir = data.dir;
+		let option = up.getOption('multipart_params') || {};
+		option.policy = data.policy;
+		option.OSSAccessKeyId = data.accessid;
+		option.success_action_status = '200';
+		option.callback = data.callback;
+		option.signature = data.signature;
 		up.setOption({
 			'url': data.host,
-			'multipart_params': {
-				'policy': data.policy,
-				'OSSAccessKeyId': data.accessid,
-				'success_action_status': '200', //让服务端返回200,不然，默认会返回204
-				'callback': data.callback,
-				'signature': data.signature
-			}
+			'multipart_params': option
 		});
 	});
 }
