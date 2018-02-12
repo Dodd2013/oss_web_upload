@@ -1,7 +1,10 @@
+let dir = '';
+let autoAddMD5 = true;
+
 $(function init() {
 	uploader.init();
 });
-let dir = '';
+
 let uploader = new plupload.Uploader({
 	runtimes: 'html5,flash,silverlight,html4',
 	browse_button: 'selectfiles',
@@ -45,24 +48,30 @@ function postInit() {
 
 function filesAdded(up, files) {
 	files.forEach(function (file) {
-		getFileMD5(file.getNative(), function (md5) {
-			document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')(MD5:' + md5 + ')<b></b>'
+		if (!file.md5 && file.name.indexOf('.md5') < 0) {
+			getFileMD5(file.getNative(), function (md5) {
+				document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ')(MD5:' + md5 + ')<b></b>'
+					+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
+					+ '</div>';
+				let option = up.getOption('multipart_params') || {};
+				option['Content-MD5'] = btoa(hexToBinaryString(md5));
+				up.setOption('multipart_params', option);
+				if (autoAddMD5) {
+					up.addFile(new File([md5], file.name + '.md5'));
+					file.md5 = true;
+				}
+			});
+		}else{
+			document.getElementById('ossfile').innerHTML += '<div id="' + file.id + '">' + file.name + '<b></b>'
 				+ '<div class="progress"><div class="progress-bar" style="width: 0"></div></div>'
 				+ '</div>';
-			let option = up.getOption('multipart_params') || {};
-			option['Content-MD5'] = btoa(hexToBinaryString(md5));
-			up.setOption('multipart_params', option);
-			if (!file.md5 && file.name.indexOf('.md5') < 0) {
-				up.addFile(new File([md5], file.name + '.md5'));
-				file.md5 = true;
-			}
-		});
+		}
 	});
 }
 
 function uploadProgress(up, file) {
 	let d = document.getElementById(file.id);
-	d.getElementsByTagName('b')[0].innerHTML = '<span>' + file.percent + '%</span>';
+	d.getElementsByTagName('b')[0].innerHTML = '<span> ' + file.percent + '%</span>';
 	let prog = d.getElementsByTagName('div')[0];
 	let progBar = prog.getElementsByTagName('div')[0];
 	progBar.style.width = 2 * file.percent + 'px';
