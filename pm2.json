@@ -1,13 +1,17 @@
 {
-    "apps": [
-      {
-        "name": "oss_web_upload",
-        "script": "bin/www",
-        "watch":[
-          "routes/*"
-      ],//需要监控的目录
-        "log_date_format": "YYYY-MM-DD HH:mm Z",
-        "log_file":"./pm2.log"
-      }
-    ]
-  }
+  "apps": [
+    {
+      "name": "oss_web_upload",
+      "script": "bin/www",
+      "watch": [
+        "./routes/*",
+        "./app.js",
+        "./config.js",
+        "./router.js"
+      ],
+      //需要监控的目录
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
+      "log_file": "./pm2.log"
+    }
+  ]
+}

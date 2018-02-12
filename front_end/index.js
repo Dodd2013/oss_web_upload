@@ -28,11 +28,9 @@ let uploader = new plupload.Uploader({
 });
 
 function beforeUpload(up, file) {
-	up.setOption({
-		'multipart_params': {
-			'key': dir + file.name
-		}
-	});
+	let option = up.getOption('multipart_params');
+	option.key = dir + file.name;
+	up.setOption('multipart_params', option);
 }
 
 function postInit() {
